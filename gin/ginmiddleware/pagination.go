@@ -2,10 +2,10 @@ package ginmiddleware
 
 import (
 	"fmt"
-	"github.com/achillescres/saina-api/pkg/gin/ginresponse"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"saina.gitlab.yandexcloud.net/saina/backend/pkg/gin/ginresponse"
 	"strconv"
 )
 

@@ -3,7 +3,7 @@ package iamStorage
 import (
 	"context"
 	"errors"
-	"github.com/achillescres/saina-api/pkg/myyc"
+	"saina.gitlab.yandexcloud.net/saina/backend/pkg/myyc"
 	"time"
 )
 
