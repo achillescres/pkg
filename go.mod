@@ -1,4 +1,4 @@
-module saina.gitlab.yandexcloud.net/saina/backend/pkg
+module github.com/achillescres/pkg
 
 go 1.20
 
