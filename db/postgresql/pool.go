@@ -36,14 +36,14 @@ func NewPGXPool(ctx context.Context, cc *ClientConfig, logger *logrus.Entry) (PG
 	}
 
 	logger.Infof("trying to connect to db: %s\n", config.ConnString())
-	ctx, cancel := context.WithTimeout(ctx, cc.WaitingDuration)
+	createCtx, cancel := context.WithTimeout(ctx, cc.WaitingDuration)
 	defer func() {
 		if cancel != nil {
 			cancel()
 		}
 	}()
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, err := pgxpool.NewWithConfig(createCtx, config)
 	if err != nil {
 		return PGXPool{}, err
 	}
@@ -51,7 +51,13 @@ func NewPGXPool(ctx context.Context, cc *ClientConfig, logger *logrus.Entry) (PG
 		return PGXPool{}, fmt.Errorf("error couldn't connect to db")
 	}
 
-	err = pool.Ping(ctx)
+	pingCtx, cancel := context.WithTimeout(ctx, cc.WaitingDuration)
+	defer func() {
+		if cancel != nil {
+			cancel()
+		}
+	}()
+	err = pool.Ping(pingCtx)
 	if err != nil {
 		return PGXPool{}, err
 	}
