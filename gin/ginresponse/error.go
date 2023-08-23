@@ -8,14 +8,14 @@ import (
 )
 
 type errorJSON struct {
-	error string `json:"error"`
+	Error string `json:"error"`
 }
 
 func ErrorString(c *gin.Context, code int, err error, clientSideError string) {
 	if err == nil {
 		return
 	}
-	c.AbortWithStatusJSON(code, errorJSON{error: clientSideError})
+	c.AbortWithStatusJSON(code, errorJSON{Error: err.Error()})
 	c.Error(err)
 }
 
@@ -32,9 +32,8 @@ func MissingRequiredQuery(c *gin.Context, queryName string) error {
 	return err
 }
 
-func MissingRequiredFormKey(c *gin.Context, queryName string) {
+func MissingRequiredFormKey(c *gin.Context, queryName string) error {
 	err := fmt.Errorf("error %s form key is required", queryName)
-	log.Errorln(err)
 	ErrorString(c, http.StatusBadRequest, err, err.Error())
-	return
+	return err
 }
