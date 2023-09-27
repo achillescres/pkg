@@ -29,7 +29,7 @@ func AssertID(id any) (ID, bool) {
 }
 
 func IsID(id string) bool {
-	if IsUndefined(ID(id)) {
+	if IsUndefined(ID(id)) { // redundant cause "" is invalid in Atoi
 		return false
 	}
 	if idNum, err := strconv.Atoi(id); err != nil || idNum < 1 {
