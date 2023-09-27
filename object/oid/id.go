@@ -30,10 +30,10 @@ func AssertID(id any) (ID, bool) {
 }
 
 func IsID(id string) bool {
-	if _, err := strconv.Atoi(id); err != nil && !IsUndefined(ID(id)) {
-		return false
+	if intID, err := strconv.Atoi(id); err == nil && !IsUndefined(id) && intID > 0 {
+		return true
 	}
-	return true
+	return false
 }
 
 func IsUndefined(id ID) bool {
