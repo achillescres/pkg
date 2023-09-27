@@ -62,5 +62,5 @@ func NewPGXPool(ctx context.Context, cc *ClientConfig, logger *logrus.Entry) (PG
 		return PGXPool{}, err
 	}
 
-	return PGXPool{pool}, err
+	return PGXPool{pool}, nil
 }

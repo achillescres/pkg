@@ -2,12 +2,11 @@ package oid
 
 import (
 	"strconv"
-	"strings"
 )
 
 type ID string
 
-const Undefined ID = "-1"
+const Undefined ID = ""
 
 // ToID casts string to id
 func ToID(id string) ID {
@@ -30,14 +29,17 @@ func AssertID(id any) (ID, bool) {
 }
 
 func IsID(id string) bool {
-	if _, err := strconv.Atoi(id); err != nil && !IsUndefined(ID(id)) {
+	if IsUndefined(ID(id)) {
+		return false
+	}
+	if idNum, err := strconv.Atoi(id); err != nil || idNum < 1 {
 		return false
 	}
 	return true
 }
 
 func IsUndefined(id ID) bool {
-	return id == Undefined || strings.TrimSpace(string(id)) == ""
+	return id == Undefined
 }
 
 func (id ID) String() string {
