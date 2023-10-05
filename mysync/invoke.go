@@ -1,0 +1,5 @@
+package mysync
+
+func InvokeWithRecovery() {
+	
+}
