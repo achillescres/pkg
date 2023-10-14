@@ -1,3 +1,3 @@
 package tube
 
-type Err func(error)
+type Error func(error)
