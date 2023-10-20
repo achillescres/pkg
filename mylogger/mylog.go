@@ -8,7 +8,7 @@ import (
 
 func ConfigureLogrus() {
 	logrus.SetFormatter(&customLog.Formatter{
-		FieldsOrder: []string{"component", "category"},
+		FieldsOrder: []string{"component"},
 	})
 	logrus.SetReportCaller(true)
 	logrus.SetOutput(os.Stdout)
