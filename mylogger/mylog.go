@@ -18,7 +18,7 @@ func ConfigureLogrus() {
 func GetLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.SetFormatter(&customLog.Formatter{
-		FieldsOrder: []string{"component", "category"},
+		FieldsOrder: []string{"component"},
 	})
 	logger.SetReportCaller(true)
 	logger.SetOutput(os.Stdout)
