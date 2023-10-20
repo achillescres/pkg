@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type Config struct {
+type FTPConfig struct {
 	Host        string
 	Port        uint
 	Username    string
@@ -17,26 +17,19 @@ type Config struct {
 	DialTimeout time.Duration
 }
 
-type Client interface {
-	Connect(ctx context.Context) error
-	Rename(ctx context.Context, from, to string) error
-	//DownloadFile(filepath string) error
-	UploadFile(ctx context.Context, filepath string, f io.Reader) error
-}
-
-type client struct {
-	cfg  Config
+type ftp struct {
+	cfg  FTPConfig
 	conn *goftp.ServerConn
 }
 
-func NewFTP(cfg Config) (Client, error) {
+func NewFTP(cfg FTPConfig) (FTP, error) {
 	if cfg.DialTimeout < time.Millisecond*256 {
 		return nil, errors.New("error dial is too small(min is 256 ms)")
 	}
-	return &client{cfg: cfg}, nil
+	return &ftp{cfg: cfg}, nil
 }
 
-func (c *client) Connect(ctx context.Context) error {
+func (c *ftp) Connect(ctx context.Context) error {
 	c.conn = nil
 	tctx, cancel := context.WithTimeout(ctx, c.cfg.DialTimeout)
 	defer func() {
@@ -57,7 +50,7 @@ func (c *client) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (c *client) UploadFile(ctx context.Context, filepath string, f io.Reader) error {
+func (c *ftp) UploadFile(ctx context.Context, filepath string, f io.Reader) error {
 	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
@@ -71,7 +64,7 @@ func (c *client) UploadFile(ctx context.Context, filepath string, f io.Reader) e
 	return nil
 }
 
-func (c *client) close() error {
+func (c *ftp) close() error {
 	if c.conn == nil {
 		return nil
 	}
@@ -82,7 +75,7 @@ func (c *client) close() error {
 	return nil
 }
 
-func (c *client) Rename(ctx context.Context, from, to string) error {
+func (c *ftp) Rename(ctx context.Context, from, to string) error {
 	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
