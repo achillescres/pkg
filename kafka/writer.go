@@ -87,24 +87,31 @@ func NewWriter(ctx context.Context, config WriterConfig) (*kafka.Writer, error) 
 		return nil, errors.New("dialer is nil")
 	}
 	if config.MaxAttempts == nil {
+		config.MaxAttempts = new(int)
 		*config.MaxAttempts = 10
 	}
 	if config.BatchSize == nil {
-		*config.BatchTimeout = 100
+		config.BatchSize = new(int)
+		*config.BatchSize = 100
 	}
 	if config.BatchBytes == nil {
+		config.BatchBytes = new(int)
 		*config.BatchBytes = 1048576
 	}
 	if config.BatchTimeout == nil {
-		*config.BatchTimeout = time.Second
+		config.BatchTimeout = new(time.Duration)
+		*config.BatchTimeout = time.Second + time.Millisecond*500
 	}
 	if config.ReadTimeout == nil {
+		config.ReadTimeout = new(time.Duration)
 		*config.ReadTimeout = time.Second * 10
 	}
 	if config.WriteTimeout == nil {
+		config.WriteTimeout = new(time.Duration)
 		*config.WriteTimeout = time.Second * 10
 	}
 	if config.RequiredAcks == nil {
+		config.RequiredAcks = new(int)
 		*config.RequiredAcks = -1
 	}
 	if config.Logger == nil {
@@ -113,6 +120,7 @@ func NewWriter(ctx context.Context, config WriterConfig) (*kafka.Writer, error) 
 	if config.ErrorLogger == nil {
 		return nil, errors.New("error logger is nil")
 	}
+	// TODO WARNING need to keep kafka-go version lower than v1.0
 	w := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:      config.Brokers,
 		Topic:        config.Topic,
