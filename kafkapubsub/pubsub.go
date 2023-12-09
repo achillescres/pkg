@@ -1,5 +1,7 @@
 package kafkapubsub
 
+import "fmt"
+
 // Topic is kafka publish and subscribe topic implementation.
 // It uses kafka.Writer and kafka.Reader from kafka-go
 // Specify your own MessageType with Message interface
@@ -11,4 +13,8 @@ type Topic[MessageType Message] struct {
 
 func NewTopic[MessageType Message](pubTopic PubTopic[MessageType], subTopic SubTopic[MessageType]) *Topic[MessageType] {
 	return &Topic[MessageType]{PubTopic: pubTopic, SubTopic: subTopic}
+}
+
+func (t *Topic[MessageType]) Name() string {
+	return fmt.Sprintf("pub: %s, sub: %s", t.PubTopic.Name(), t.SubTopic.Name())
 }
