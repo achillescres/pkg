@@ -53,11 +53,12 @@ func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]
 			}
 
 			var mes MessageType
-			err = mes.Scan(rawMes.Value)
+			mesI, err := mes.Unmarshal(rawMes.Value)
 			if err != nil {
 				s.errTube(fmt.Errorf("scan message's value: %w", err))
 				return
 			}
+			mes = mesI.(MessageType)
 
 			// TODO maybe add Goard panic security
 			callback(mes)

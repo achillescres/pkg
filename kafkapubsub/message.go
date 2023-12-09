@@ -4,8 +4,10 @@ package kafkapubsub
 type Message interface {
 	// Bytes converts Message to []byte
 	Bytes() ([]byte, error)
-	// Scan scans []byte and unmarshals it to Message
-	Scan([]byte) error
+
+	// Unmarshal scans []byte and unmarshals and returns it
+	Unmarshal([]byte) (Message, error)
+
 	// Key returns Message's key
 	Key() string
 }
