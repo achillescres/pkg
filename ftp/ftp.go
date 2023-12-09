@@ -30,6 +30,8 @@ func NewFTP(cfg FTPConfig) (FTP, error) {
 }
 
 func (c *ftp) Connect(ctx context.Context) error {
+	c.close()
+
 	c.conn = nil
 	tctx, cancel := context.WithTimeout(ctx, c.cfg.DialTimeout)
 	defer func() {
@@ -54,32 +56,33 @@ func (c *ftp) UploadFile(ctx context.Context, filepath string, f io.Reader) erro
 	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("connect to ftp server: %w", err)
 	}
 	err = c.conn.Stor(filepath, f)
 	if err != nil {
-		return err
+		return fmt.Errorf("use STOR command to ftp server: %w", err)
 	}
 
 	return nil
 }
 
-func (c *ftp) close() error {
+func (c *ftp) close() {
 	if c.conn == nil {
-		return nil
+		return
 	}
 	if err := c.conn.Quit(); err != nil {
-		return err
+		c.conn = nil
+		//return fmt.Errorf("close connection to ftp server: %w", err)
 	}
 	c.conn = nil
-	return nil
+	return
 }
 
 func (c *ftp) Rename(ctx context.Context, from, to string) error {
 	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("connect to ftp server: %w", err)
 	}
 
 	return c.conn.Rename(from, to)

@@ -22,12 +22,14 @@ type sftp struct {
 
 func NewSFTP(cfg SFTPConfig) (SFTP, error) {
 	if cfg.cc.Timeout < time.Millisecond*256 {
-		return nil, errors.New("error dial is too small(min is 256 ms)")
+		return nil, errors.New("dial is too small(min is 256 ms)")
 	}
 	return &sftp{cfg: cfg}, nil
 }
 
-func (c *sftp) Connect(ctx context.Context) error {
+func (c *sftp) Connect(_ context.Context) error {
+	c.close()
+
 	c.client = nil
 	conn, err := ssh.Dial("tcp", c.cfg.Addr, &c.cfg.cc)
 	if err != nil {
@@ -44,11 +46,11 @@ func (c *sftp) Connect(ctx context.Context) error {
 }
 
 func (c *sftp) UploadFile(ctx context.Context, filepath string, f io.Reader) error {
-	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("connecting to sftp: %w", err)
 	}
+	defer c.close()
 	file, err := c.client.Create(filepath)
 	if err != nil {
 		return fmt.Errorf("couldn't create new file: %w", err)
@@ -61,23 +63,21 @@ func (c *sftp) UploadFile(ctx context.Context, filepath string, f io.Reader) err
 	return nil
 }
 
-func (c *sftp) close() error {
+func (c *sftp) close() {
 	if c.client == nil {
-		return nil
+		return
 	}
-	if err := c.client.Close(); err != nil {
-		return err
-	}
+	c.client.Close()
 	c.client = nil
-	return nil
+	return
 }
 
 func (c *sftp) Rename(ctx context.Context, from, to string) error {
-	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
 		return err
 	}
+	defer c.close()
 
 	return c.client.Rename(from, to)
 }
