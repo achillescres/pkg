@@ -15,6 +15,10 @@ type PubTopic[MessageType Message] struct {
 	writer *kafka.Writer
 }
 
+func NewPubTopic[MessageType Message](writer *kafka.Writer) messagebroker.PubTopic[MessageType] {
+	return &PubTopic[MessageType]{writer: writer}
+}
+
 func (p *PubTopic[MessageType]) Name() string {
 	return p.writer.Topic
 }
@@ -35,8 +39,4 @@ func (p *PubTopic[MessageType]) Pub(ctx context.Context, message MessageType) er
 		return fmt.Errorf("write message to kafka topic: %w", err)
 	}
 	return nil
-}
-
-func NewPubBroker[MessageType Message](writer *kafka.Writer) messagebroker.PubTopic[MessageType] {
-	return &PubTopic[MessageType]{writer: writer}
 }

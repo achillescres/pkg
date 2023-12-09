@@ -13,6 +13,10 @@ type SubTopic[MessageType Message] struct {
 	reader *kafka.Reader
 }
 
+func NewSubTopic[MessageType Message](reader *kafka.Reader) messagebroker.SubTopic[MessageType] {
+	return &SubTopic[MessageType]{reader: reader}
+}
+
 func (s *SubTopic[MessageType]) Name() string {
 	return s.reader.Stats().Topic
 }
@@ -41,8 +45,4 @@ func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]
 	}()
 
 	return messagebroker.CancelSubscription(cancel), nil
-}
-
-func NewSubTopic[MessageType Message](reader *kafka.Reader) messagebroker.SubTopic[MessageType] {
-	return &SubTopic[MessageType]{reader: reader}
 }
