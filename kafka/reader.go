@@ -24,8 +24,8 @@ type ReaderConfig struct {
 	CaAbsPath string
 }
 
-func NewReader(ctx context.Context, rc *ReaderConfig) (*kafka.Reader, error) {
-	config := newReaderFromReaderConfig(*rc)
+func NewReader(ctx context.Context, rc ReaderConfig) (*kafka.Reader, error) {
+	config := newReaderFromReaderConfig(rc)
 
 	dialer := &kafka.Dialer{
 		Timeout:   rc.WaitingDuration,
