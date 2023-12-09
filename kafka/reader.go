@@ -65,7 +65,7 @@ func NewReader(ctx context.Context, rc *ReaderConfig) (*kafka.Reader, error) {
 		}
 		_, err = conn.ReadPartitions()
 		if err != nil {
-			return nil, fmt.Errorf("kafka read partitions failed: %s", err)
+			return nil, fmt.Errorf("failed to read partitions of broker: %s", err)
 		}
 	}
 
