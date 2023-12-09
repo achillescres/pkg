@@ -83,6 +83,9 @@ type WriterConfig struct {
 }
 
 func NewWriter(ctx context.Context, config WriterConfig) (*kafka.Writer, error) {
+	if config.Topic == "" {
+		return nil, errors.New("topic is empty, you need to specify topic in write not message, sorry:(")
+	}
 	if config.Dialer == nil {
 		return nil, errors.New("dialer is nil")
 	}

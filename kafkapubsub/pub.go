@@ -37,7 +37,6 @@ func (p *PubTopic[MessageType]) Pub(ctx context.Context, message MessageType) er
 	}
 
 	err = p.writer.WriteMessages(ctx, kafka.Message{
-		Topic:     p.writer.Topic,
 		Partition: p.partition,
 		Offset:    p.offset,
 		Key:       []byte(message.Key()),
