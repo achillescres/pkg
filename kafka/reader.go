@@ -12,10 +12,10 @@ import (
 )
 
 type ReaderConfig struct {
-	Brokers         []string
-	GroupID         string
-	Topic           string
-	WaitingDuration time.Duration
+	Brokers []string
+	GroupID string
+	Topic   string
+	Timeout time.Duration
 
 	UseSASL            bool
 	Username, Password string
@@ -28,7 +28,7 @@ func NewReader(ctx context.Context, rc ReaderConfig) (*kafka.Reader, error) {
 	config := newReaderFromReaderConfig(rc)
 
 	dialer := &kafka.Dialer{
-		Timeout:   rc.WaitingDuration,
+		Timeout:   rc.Timeout,
 		DualStack: true,
 	}
 
