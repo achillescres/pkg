@@ -1,12 +1,12 @@
 package kafkapubsub
 
 // Message is interface for kafka topics use
-type Message interface {
+type Message[MessageType any] interface {
 	// Bytes converts Message to []byte
 	Bytes() ([]byte, error)
 
 	// Unmarshal scans []byte and unmarshals and returns it
-	Unmarshal([]byte) (Message, error)
+	Unmarshal([]byte) (MessageType, error)
 
 	// Key returns Message's key
 	Key() string
