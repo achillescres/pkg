@@ -19,14 +19,14 @@ const (
 // It uses kafka.Reader from kafka-go
 // Specify your own MessageType with Message interface
 // Don't use it directly instead use NewSubTopic!
-type SubTopic[MessageType Message[MessageType]] struct {
+type SubTopic[MessageType Message] struct {
 	reader  *kafka.Reader
 	errTube tube.Error
 	// commit determines whether Sub will commit message after callback invoke or immediately
 	commit Commit
 }
 
-func NewSubTopic[MessageType Message[MessageType]](reader *kafka.Reader, errTube tube.Error, commit Commit) messagebroker.SubTopic[MessageType] {
+func NewSubTopic[MessageType Message](reader *kafka.Reader, errTube tube.Error, commit Commit) messagebroker.SubTopic[MessageType] {
 	return &SubTopic[MessageType]{reader: reader, errTube: errTube, commit: commit}
 }
 
@@ -53,11 +53,12 @@ func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]
 			}
 
 			var mes MessageType
-			mes, err = mes.Unmarshal(rawMes.Value)
+			mesI, err := mes.Unmarshal(rawMes.Value)
 			if err != nil {
 				s.errTube(fmt.Errorf("scan message's value: %w", err))
 				return
 			}
+			mes = mesI.(MessageType)
 
 			// TODO maybe add Goard panic security
 			callback(mes)

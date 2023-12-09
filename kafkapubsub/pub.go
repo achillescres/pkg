@@ -18,7 +18,12 @@ type PubTopic[MessageType Message] struct {
 	timeFunc  func() time.Time
 }
 
-func NewPubTopic[MessageType Message](writer *kafka.Writer, partition int, offset int64, timeFunc func() time.Time) messagebroker.PubTopic[MessageType] {
+func NewPubTopic[MessageType Message](
+	writer *kafka.Writer,
+	partition int,
+	offset int64,
+	timeFunc func() time.Time,
+) messagebroker.PubTopic[MessageType] {
 	return &PubTopic[MessageType]{writer: writer, partition: partition, offset: offset, timeFunc: timeFunc}
 }
 
