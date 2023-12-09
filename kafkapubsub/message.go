@@ -6,4 +6,6 @@ type Message interface {
 	Bytes() ([]byte, error)
 	// Scan scans []byte and unmarshals it to Message
 	Scan([]byte) error
+	// Key returns Message's key
+	Key() string
 }
