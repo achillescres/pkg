@@ -24,14 +24,18 @@ func (p *PubTopic[MessageType]) Name() string {
 }
 
 func (p *PubTopic[MessageType]) Pub(ctx context.Context, message MessageType) error {
-	err := p.writer.WriteMessages(ctx, kafka.Message{
+	rawMes, err := message.Bytes()
+	if err != nil {
+		return fmt.Errorf("get bytes from message: %w", err)
+	}
+	err = p.writer.WriteMessages(ctx, kafka.Message{
 		Topic: p.writer.Topic,
 		// TODO доделать эти поля
 		Partition:     0,
 		Offset:        0,
 		HighWaterMark: 0,
 		Key:           []byte(p.writer.Topic + " message"),
-		Value:         message.Bytes(),
+		Value:         rawMes,
 		// TODO возомжность настройки времени?
 		Time: time.Now(),
 	})
