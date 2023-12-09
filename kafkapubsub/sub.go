@@ -26,7 +26,7 @@ type SubTopic[MessageType Message] struct {
 	commit Commit
 }
 
-func NewSubTopic[MessageType Message](reader *kafka.Reader, errTube tube.Error, commit Commit) messagebroker.SubTopic[MessageType] {
+func NewSubTopic[MessageType Message](reader *kafka.Reader, errTube tube.Error, commit Commit) *SubTopic[MessageType] {
 	return &SubTopic[MessageType]{reader: reader, errTube: errTube, commit: commit}
 }
 

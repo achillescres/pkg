@@ -3,7 +3,6 @@ package kafkapubsub
 import (
 	"context"
 	"fmt"
-	"github.com/achillescres/pkg/messagebroker"
 	"github.com/segmentio/kafka-go"
 	"time"
 )
@@ -23,7 +22,7 @@ func NewPubTopic[MessageType Message](
 	partition int,
 	offset int64,
 	timeFunc func() time.Time,
-) messagebroker.PubTopic[MessageType] {
+) *PubTopic[MessageType] {
 	return &PubTopic[MessageType]{writer: writer, partition: partition, offset: offset, timeFunc: timeFunc}
 }
 
