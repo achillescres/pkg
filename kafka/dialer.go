@@ -15,12 +15,12 @@ type DialConfig struct {
 	UseSASL            bool
 	UseCA              bool
 	CaAbsPath          string
-	WaitingDuration    time.Duration
+	Timeout            time.Duration
 }
 
 func NewDialer(config DialConfig) (*kafka.Dialer, error) {
 	dialer := &kafka.Dialer{
-		Timeout:   config.WaitingDuration,
+		Timeout:   config.Timeout,
 		DualStack: true,
 	}
 
