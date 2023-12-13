@@ -38,6 +38,7 @@ func UserPolicy[PolicyData any](log logrus.Entry, cookieName string, check Token
 	}
 }
 
+// GetPolicyData returns PolicyData that was injected by UserPolicy middleware
 func GetPolicyData[PolicyData any](ctx context.Context) (pd PolicyData, err error) {
 	pd, ok := ctx.Value(policyInfoKey).(PolicyData)
 	if !ok {
