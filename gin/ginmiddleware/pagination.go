@@ -3,10 +3,12 @@ package ginmiddleware
 import (
 	"fmt"
 	"github.com/achillescres/pkg/gin/ginresponse"
+	"github.com/achillescres/pkg/vars"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 const (
@@ -39,7 +41,8 @@ func PaginationMiddleware() gin.HandlerFunc {
 		lastSeenFltDate, okFltDate := c.GetQuery("lastSeenFltDate")
 		if !okFltDate || lastSeenFltDate == "" {
 			lastSeenFltDate = "00010101"
-		} else if len(lastSeenFltDate) != 8 {
+		} else if _, err := time.Parse(vars.FltDateLayout, lastSeenFltDate); err != nil {
+			err := fmt.Errorf("invalid lastSeenFltDate query, must be YYYYMMDD format: %w", err)
 			ginresponse.ErrorString(c, http.StatusBadRequest, err, "invalid lastSeenFltDate, format is YYYYMMDD")
 			log.Errorln(err)
 			return
