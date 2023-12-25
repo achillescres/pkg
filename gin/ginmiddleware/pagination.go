@@ -19,7 +19,6 @@ var ErrPaginationQueriesIsRequired = fmt.Errorf("error paginations queries is re
 
 func PaginationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Infoln("PaginationMiddleware")
 		var err error
 
 		var quoteInt int
