@@ -3,9 +3,12 @@ package ginmiddleware
 import (
 	"context"
 	"errors"
+	"github.com/achillescres/pkg/gin/ginmiddleware/authProto"
 	"github.com/achillescres/pkg/gin/ginresponse"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"net/http"
 )
 
@@ -14,6 +17,24 @@ const (
 )
 
 type TokenChecker[PolicyData any] func(ctx context.Context, token string) (PolicyData, error)
+
+func NewTokenGRPCChecker(addr string) (TokenChecker[any], error) {
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	client := authProto.NewExternalAuthClient(conn)
+
+	return func(ctx context.Context, token string) (any, error) {
+		userInfo, err := client.Permissions(ctx, &authProto.CookieAccess{
+			Access: token,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return userInfo, nil
+	}, nil
+}
 
 // UserPolicy returns a middleware that checks and validates auth cookie with TokenChecker
 // PolicyData must be value type NOT POINTER!

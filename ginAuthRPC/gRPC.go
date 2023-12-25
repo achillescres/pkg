@@ -3,8 +3,8 @@ package ginAuthRPC
 import (
 	"context"
 	"fmt"
+	authProto2 "github.com/achillescres/pkg/gin/ginmiddleware/authProto"
 	"github.com/achillescres/pkg/gin/ginresponse"
-	"github.com/achillescres/pkg/ginAuthRPC/authProto"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
@@ -35,7 +35,7 @@ type AuthServer interface {
 }
 
 type authServerRPC struct {
-	externalAuthClient authProto.ExternalAuthClient
+	externalAuthClient authProto2.ExternalAuthClient
 }
 
 const (
@@ -76,7 +76,7 @@ func NewRPCServer(ctx context.Context, opt ...interface{}) (AuthServer, error) {
 		return nil, err
 	}
 
-	c := authProto.NewExternalAuthClient(conn)
+	c := authProto2.NewExternalAuthClient(conn)
 
 	return &authServerRPC{
 		externalAuthClient: c,
@@ -96,7 +96,7 @@ func (a *authServerRPC) AuthMiddleware(c *gin.Context) {
 		ginresponse.ErrorString(c, http.StatusUnauthorized, err, "cookies are missing")
 		return
 	}
-	userInfo, err := a.externalAuthClient.Permissions(c, &authProto.CookieAccess{Access: cookie})
+	userInfo, err := a.externalAuthClient.Permissions(c, &authProto2.CookieAccess{Access: cookie})
 	if err != nil {
 		log.Errorln(err)
 		ginresponse.ErrorString(c, http.StatusUnauthorized, err, err.Error())
