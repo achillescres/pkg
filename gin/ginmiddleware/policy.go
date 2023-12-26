@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"net/http"
 )
 
@@ -18,11 +17,7 @@ const (
 
 type TokenChecker[PolicyData any] func(ctx context.Context, token string) (PolicyData, error)
 
-func NewTokenGRPCChecker(addr string) (TokenChecker[any], error) {
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
+func NewDefaultTokenGRPCChecker(ctx context.Context, conn *grpc.ClientConn) (TokenChecker[any], error) {
 	client := authProto.NewExternalAuthClient(conn)
 
 	return func(ctx context.Context, token string) (any, error) {
