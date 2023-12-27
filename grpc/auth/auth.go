@@ -7,16 +7,16 @@ import (
 	"google.golang.org/grpc"
 )
 
-func NewDefaultTokenGRPCChecker(conn *grpc.ClientConn) (ginmiddleware.TokenChecker[authProto.UserInfo], error) {
+func NewDefaultTokenGRPCChecker(conn *grpc.ClientConn) (ginmiddleware.TokenChecker[*authProto.UserInfo], error) {
 	client := authProto.NewExternalAuthClient(conn)
 
-	return func(ctx context.Context, token string) (authProto.UserInfo, error) {
+	return func(ctx context.Context, token string) (*authProto.UserInfo, error) {
 		userInfo, err := client.Permissions(ctx, &authProto.CookieAccess{
 			Access: token,
 		})
 		if err != nil {
-			return authProto.UserInfo{}, err
+			return nil, err
 		}
-		return *userInfo, nil
+		return userInfo, nil
 	}, nil
 }
