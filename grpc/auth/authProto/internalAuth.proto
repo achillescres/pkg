@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package authProto;
+
+option go_package = "./authProto";
+
+import "google/protobuf/timestamp.proto";
+
+message CookieAccess {
+  string access = 1;
+}
+
+message User {
+  string ID = 1;
+  string Login = 2;
+  string HashedPassword = 3;
+  google.protobuf.Timestamp RegisteredTime = 4;
+  string FullName = 5;
+  string Position = 6;
+  string Email = 7;
+  string PhoneNumber = 8;
+  string Role = 9;
+  string AirlineCode = 10;
+  bool Approved = 11;
+}
+
+message UserInfo {
+  User User = 1;
+  string UserLogin = 2;
+  string AirlCode = 3;
+  int64 UserRole = 4;
+}
+
+service ExternalAuth {
+  rpc Permissions(CookieAccess) returns (UserInfo) {};
+}
