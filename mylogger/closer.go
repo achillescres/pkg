@@ -10,10 +10,6 @@ type CloseBuilder struct {
 	toClose []Closer
 }
 
-func NewClose() *CloseBuilder {
-	return &CloseBuilder{}
-}
-
 func (c *CloseBuilder) GetCloser() Closer {
 	return func(e *logrus.Entry) error {
 		// Clause toCLose slice, so we'll be able to add new Closers
