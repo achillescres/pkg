@@ -3,11 +3,11 @@ package mylogging
 import "github.com/sirupsen/logrus"
 
 type CloseOnFatal struct {
-	exec func(*logrus.Entry) error
+	closer Closer
 }
 
-func NewCloseOnFatal(exec func(*logrus.Entry) error) *CloseOnFatal {
-	return &CloseOnFatal{exec: exec}
+func NewCloseOnFatal(closer Closer) *CloseOnFatal {
+	return &CloseOnFatal{closer: closer}
 }
 
 func (CloseOnFatal) Levels() []logrus.Level {
@@ -16,7 +16,7 @@ func (CloseOnFatal) Levels() []logrus.Level {
 
 func (hook CloseOnFatal) Fire(e *logrus.Entry) error {
 	e.Infoln("Hook CloseOnFatal!")
-	err := hook.exec(e)
+	err := hook.closer(e)
 	e.Infoln("Hook CloseOnFatal success!")
 	return err
 }
