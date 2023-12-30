@@ -1,20 +1,26 @@
 package mylogging
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+	"sync"
+)
 
 type CloseBuilder struct {
+	once    sync.Once
 	toClose []Closer
 }
 
 func (c *CloseBuilder) GetCloser() Closer {
 	return func(e *logrus.Entry) error {
-		// Clause toCLose slice, so we'll be able to add new Closers
-		for _, closer := range c.toClose {
-			err := closer(e)
-			if err != nil {
-				e.Errorf("closing: %s", err)
+		c.once.Do(func() {
+			// Clause toCLose slice, so we'll be able to add new Closers
+			for _, closer := range c.toClose {
+				err := closer(e)
+				if err != nil {
+					e.Errorf("closing: %s", err)
+				}
 			}
-		}
+		})
 		return nil
 	}
 }
@@ -34,5 +40,11 @@ func (c *CloseBuilder) AddClose(closer func() error, serviceName string) {
 }
 
 func (c *CloseBuilder) AddCloser(closer Closer) {
-	c.toClose = append(c.toClose, closer)
+	c.toClose = append(c.toClose, func(entry *logrus.Entry) error {
+		err := closer(entry)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 }
