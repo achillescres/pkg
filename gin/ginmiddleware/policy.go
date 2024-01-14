@@ -22,7 +22,7 @@ func UserPolicy[PolicyData any](log logrus.Entry, cookieName string, check Token
 		access, err := c.Cookie(cookieName)
 		if err != nil {
 			log.Errorf("UserPolicy - (middleware): get access cookie: %s\n", err)
-			ginresponse.ErrorString(c, http.StatusBadRequest, err, "access cookie is empty")
+			ginresponse.ErrorString(c, http.StatusUnauthorized, err, "access cookie is empty")
 			return
 		}
 
