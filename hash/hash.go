@@ -2,19 +2,33 @@ package hash
 
 import (
 	"crypto/md5"
+	"crypto/sha512"
 	"encoding/hex"
 )
 
-type InstantHasher func(...[]byte) string
+//type InstantHasher func(...[]byte) string
 
-func NewMD5() InstantHasher {
-	return func(elems ...[]byte) string {
-		hash := md5.New()
+type InstantHasher interface {
+	MD5(elems ...[]byte) string
+	SHA512(elems ...[]byte) string
+}
 
-		for _, elem := range elems {
-			hash.Write(elem)
-		}
+func MD5(elems ...[]byte) string {
+	hash := md5.New()
 
-		return hex.EncodeToString(hash.Sum(nil))
+	for _, elem := range elems {
+		hash.Write(elem)
 	}
+
+	return hex.EncodeToString(hash.Sum(nil))
+}
+
+func SHA512(elems ...[]byte) string {
+	hash := sha512.New()
+
+	for _, elem := range elems {
+		hash.Write(elem)
+	}
+
+	return hex.EncodeToString(hash.Sum(nil))
 }
