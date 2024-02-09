@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"github.com/achillescres/pkg/cache/redisCache"
 	"github.com/achillescres/pkg/hash"
+	"github.com/achillescres/pkg/reader"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
-	"io"
 	"net/http"
 	"time"
 )
@@ -22,7 +22,7 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 		url := c.Request.URL.String()
 		bodyR := c.Request.Body
 
-		body, err := io.ReadAll(bodyR)
+		body, err := reader.ReadLossless(bodyR)
 		if err != nil {
 			c.Next()
 			return
@@ -46,7 +46,7 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 		}
 
 		bodyR := c.Request.Body
-		body, err := io.ReadAll(bodyR)
+		body, err := reader.ReadLossless(bodyR)
 		if err != nil {
 			c.Next()
 			return
