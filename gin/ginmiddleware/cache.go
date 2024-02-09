@@ -16,6 +16,8 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 
 	cache := redisCache.NewRedisCacher(client)
 
+	hasher := hash.NewMD5H()
+
 	cacheGet = func(c *gin.Context) {
 		url := c.Request.URL.String()
 		bodyR := c.Request.Body
@@ -26,7 +28,7 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 			return
 		}
 
-		hashKey := hash.MD5([]byte(url), body)
+		hashKey := hasher.Hash([]byte(url), body)
 
 		val, found := cache.Get(c, hashKey)
 		if !found {
@@ -52,7 +54,7 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 
 		url := c.Request.URL.String()
 
-		hashKey := hash.MD5([]byte(url), body)
+		hashKey := hasher.Hash([]byte(url), body)
 
 		data, err2 := json.Marshal(val)
 		if err2 != nil {

@@ -9,11 +9,16 @@ import (
 //type InstantHasher func(...[]byte) string
 
 type InstantHasher interface {
-	MD5(elems ...[]byte) string
-	SHA512(elems ...[]byte) string
+	Hash(elems ...[]byte) string
 }
 
-func MD5(elems ...[]byte) string {
+type md5H struct{}
+
+func NewMD5H() InstantHasher {
+	return &md5H{}
+}
+
+func (md5H) Hash(elems ...[]byte) string {
 	hash := md5.New()
 
 	for _, elem := range elems {
@@ -23,7 +28,13 @@ func MD5(elems ...[]byte) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func SHA512(elems ...[]byte) string {
+type sha512H struct{}
+
+func NewSHA512H() InstantHasher {
+	return &sha512H{}
+}
+
+func (sha512H) Hash(elems ...[]byte) string {
 	hash := sha512.New()
 
 	for _, elem := range elems {
