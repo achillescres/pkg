@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -22,17 +22,12 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 	cacheGet = func(c *gin.Context) {
 		url := c.Request.URL.String()
 
-		body, err := ioutil.ReadAll(c.Request.Body)
+		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
-
-		body, err = ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
 
 		hashKey := hasher.Hash([]byte(url), body)
 
@@ -51,17 +46,12 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 			return
 		}
 
-		body, err := ioutil.ReadAll(c.Request.Body)
+		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
-
-		body, err = ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
 
 		url := c.Request.URL.String()
 
