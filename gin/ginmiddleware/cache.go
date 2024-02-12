@@ -57,8 +57,8 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 
 		hashKey := hasher.Hash([]byte(url), body)
 
-		data, err2 := json.Marshal(val)
-		if err2 != nil {
+		data, err := json.Marshal(val)
+		if err != nil {
 			return
 		}
 		err = cache.Set(c, hashKey, data, expiration)
