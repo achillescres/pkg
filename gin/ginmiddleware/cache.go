@@ -1,13 +1,14 @@
 package ginmiddleware
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/achillescres/pkg/cache/redisCache"
 	"github.com/achillescres/pkg/hash"
-	"github.com/achillescres/pkg/reader"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -20,12 +21,17 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 
 	cacheGet = func(c *gin.Context) {
 		url := c.Request.URL.String()
-		bodyR := c.Request.Body
 
-		body, err := reader.ReadLossless(bodyR)
+		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
-			c.Next()
-			return
+			log.Fatal(err)
+		}
+
+		c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+		body, err = ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		hashKey := hasher.Hash([]byte(url), body)
@@ -45,11 +51,16 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 			return
 		}
 
-		bodyR := c.Request.Body
-		body, err := reader.ReadLossless(bodyR)
+		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
-			c.Next()
-			return
+			log.Fatal(err)
+		}
+
+		c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+		body, err = ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		url := c.Request.URL.String()
