@@ -1,11 +1,14 @@
 package ginmiddleware
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/achillescres/pkg/cache/redisCache"
+	"github.com/achillescres/pkg/hash"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 	"time"
 )
@@ -14,9 +17,21 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 
 	cache := redisCache.NewRedisCacher(client)
 
+	hasher := hash.NewMD5H()
+
 	cacheGet = func(c *gin.Context) {
 		url := c.Request.URL.String()
-		val, found := cache.Get(c, url)
+
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
+
+		hashKey := hasher.Hash([]byte(url), body)
+
+		val, found := cache.Get(c, hashKey)
 		if !found {
 			c.Next()
 		}
@@ -30,12 +45,23 @@ func NewCacherMiddleware(log *log.Entry, client *redis.Client, expiration time.D
 			c.Next()
 			return
 		}
+
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
+
 		url := c.Request.URL.String()
-		data, err2 := json.Marshal(val)
-		if err2 != nil {
+
+		hashKey := hasher.Hash([]byte(url), body)
+
+		data, err := json.Marshal(val)
+		if err != nil {
 			return
 		}
-		err := cache.Set(c, url, data, expiration)
+		err = cache.Set(c, hashKey, data, expiration)
 		if err != nil {
 			log.Errorln(err)
 			return
