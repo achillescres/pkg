@@ -7,7 +7,7 @@ import (
 )
 
 // CredVault stores and updates credentials
-// Uses PellCred function to pull new credentials
+// Uses PullCred function to pull new credentials
 // Automatically updates credentials if expired or will in expirationTimeMinimumBound
 type CredVault[Cred any] struct {
 	pull                       PullCred[Cred]
