@@ -47,10 +47,10 @@ func NewBucket(bucketName string, fileDownloadTL time.Duration, fileUploadTL tim
 		return nil, fmt.Errorf("error bucketName cant be empty")
 	}
 	log.Infoln(fileDownloadTL, fileUploadTL)
-	//if fileDownloadTL.Seconds() < 1  fileDownloadTL.Seconds() > 1000 {
+	//if fileDownloadTL.Seconds() < 1 || fileDownloadTL.Seconds() > 1000 {
 	//  return nil, fmt.Errorf("error fileDownloadTL must be in range 1 - 40 seconds")
 	//}
-	//if fileUploadTL.Seconds() < 1  fileUploadTL.Seconds() > 40 {
+	//if fileUploadTL.Seconds() < 1 || fileUploadTL.Seconds() > 40 {
 	//  return nil, fmt.Errorf("error fileUploadTL must be in range 1 - 40 seconds")
 	//}
 	// Создаем кастомный обработчик эндпоинтов, который для сервиса S3 и региона ru-central1 выдаст корректный URL
@@ -104,7 +104,7 @@ func NewBucket(bucketName string, fileDownloadTL time.Duration, fileUploadTL tim
 	}, err
 }
 
-func NewBucket2(
+func NewUniversalBucket(
 	s3URL, region, bucketName, partitionID string,
 	fileDownloadTL time.Duration, fileUploadTL time.Duration,
 ) (Bucket, error) {
