@@ -42,13 +42,13 @@ func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]
 			rawMes, err := s.reader.FetchMessage(ctx)
 			if err != nil {
 				s.errTube(fmt.Errorf("fetch message: %w", err))
-				return
+				continue
 			}
 			if s.commit == AutoCommit {
 				err = s.reader.CommitMessages(ctx, rawMes)
 				if err != nil {
 					s.errTube(fmt.Errorf("commit message: %w", err))
-					return
+					continue
 				}
 			}
 
@@ -56,7 +56,7 @@ func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]
 			mesI, err := mes.Unmarshal(rawMes.Value)
 			if err != nil {
 				s.errTube(fmt.Errorf("scan message's value: %w", err))
-				return
+				continue
 			}
 			mes = mesI.(MessageType)
 
@@ -67,7 +67,7 @@ func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]
 				err = s.reader.CommitMessages(ctx, rawMes)
 				if err != nil {
 					s.errTube(fmt.Errorf("commit message: %w", err))
-					return
+					continue
 				}
 			}
 		}
