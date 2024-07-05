@@ -3,14 +3,16 @@ package s3
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/url"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"time"
 )
 
 type FileHead struct {
@@ -38,8 +40,6 @@ type bucket struct {
 	client     *s3.Client
 	uploader   *manager.Uploader
 	downloader *manager.Downloader
-
-	lastFilename string
 }
 
 func NewBucket(bucketName string, fileDownloadTL time.Duration, fileUploadTL time.Duration) (Bucket, error) {
@@ -48,10 +48,10 @@ func NewBucket(bucketName string, fileDownloadTL time.Duration, fileUploadTL tim
 	}
 	log.Infoln(fileDownloadTL, fileUploadTL)
 	//if fileDownloadTL.Seconds() < 1 || fileDownloadTL.Seconds() > 1000 {
-	//	return nil, fmt.Errorf("error fileDownloadTL must be in range 1 - 40 seconds")
+	//  return nil, fmt.Errorf("error fileDownloadTL must be in range 1 - 40 seconds")
 	//}
 	//if fileUploadTL.Seconds() < 1 || fileUploadTL.Seconds() > 40 {
-	//	return nil, fmt.Errorf("error fileUploadTL must be in range 1 - 40 seconds")
+	//  return nil, fmt.Errorf("error fileUploadTL must be in range 1 - 40 seconds")
 	//}
 	// Создаем кастомный обработчик эндпоинтов, который для сервиса S3 и региона ru-central1 выдаст корректный URL
 	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
@@ -84,6 +84,72 @@ func NewBucket(bucketName string, fileDownloadTL time.Duration, fileUploadTL tim
 
 	for _, bucket := range result.Buckets {
 		log.Printf("bucket=%s creation time=%s", aws.ToString(bucket.Name), bucket.CreationDate.Format("2006-01-02 15:04:05 Monday"))
+	}
+
+	var partMBytes int64 = 4
+	uploader := manager.NewUploader(client, func(u *manager.Uploader) {
+		u.PartSize = partMBytes * 1024 * 1024
+	})
+
+	downloader := manager.NewDownloader(client)
+
+	return &bucket{
+		name:           bucketName,
+		fileDownloadTL: fileDownloadTL,
+		fileUploadTL:   fileUploadTL,
+
+		client:     client,
+		uploader:   uploader,
+		downloader: downloader,
+	}, err
+}
+
+func NewUniversalBucket(
+	s3URL, region, bucketName, partitionID string,
+	fileDownloadTL time.Duration, fileUploadTL time.Duration,
+) (Bucket, error) {
+	if s3URL == "" {
+		return nil, fmt.Errorf("error s3 url cant be empty")
+	} else if _, err := url.Parse(s3URL); err != nil {
+		return nil, fmt.Errorf("error parse s3 url: %w", err)
+	}
+	if region == "" {
+		return nil, fmt.Errorf("error s3 region cant be empty")
+	}
+	if bucketName == "" {
+		return nil, fmt.Errorf("error s3 bucketName cant be empty")
+	}
+	if partitionID == "" {
+		return nil, fmt.Errorf("error s3 partitionID cant be empty")
+	}
+
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		if service == s3.ServiceID {
+			return aws.Endpoint{
+				PartitionID:   partitionID,
+				URL:           s3URL,
+				SigningRegion: region,
+			}, nil
+		}
+		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
+	})
+
+	// load config from ~/.aws/*
+	cfg, err := awsConfig.LoadDefaultConfig(
+		context.TODO(),
+		awsConfig.WithEndpointResolverWithOptions(customResolver),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	//crate s3 client
+	client := s3.NewFromConfig(cfg)
+
+	// ping bucket
+	_, err = client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
+	if err != nil {
+		return nil, fmt.Errorf("error while ListBuckets: %w", err)
 	}
 
 	var partMBytes int64 = 4
