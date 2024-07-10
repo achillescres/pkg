@@ -34,11 +34,14 @@ func (s *SubTopic[MessageType]) Name() string {
 	return s.reader.Stats().Topic
 }
 
-func (s *SubTopic[MessageType]) Sub(callback messagebroker.Callback[MessageType]) (messagebroker.CancelSubscription, error) {
-	// TODO ctx откуда?
-	ctx, cancel := context.WithCancel(context.Background())
+func (s *SubTopic[MessageType]) Sub(ctx context.Context, callback messagebroker.Callback[MessageType]) (messagebroker.CancelSubscription, error) { // TODO ctx откуда?
+	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		for {
+			if err := ctx.Err(); err != nil {
+				s.errTube(fmt.Errorf("context closed: %w", err))
+				return
+			}
 			rawMes, err := s.reader.FetchMessage(ctx)
 			if err != nil {
 				s.errTube(fmt.Errorf("fetch message: %w", err))
