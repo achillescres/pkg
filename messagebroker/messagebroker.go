@@ -16,7 +16,7 @@ type Topic[MessageType Message] interface {
 
 type SubTopic[MessageType Message] interface {
 	Name() string
-	Sub(callback Callback[MessageType]) (CancelSubscription, error)
+	Sub(ctx context.Context, callback Callback[MessageType]) (CancelSubscription, error)
 }
 
 type PubTopic[MessageType Message] interface {
