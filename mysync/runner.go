@@ -15,7 +15,7 @@ func NewRunner() *Runner {
 	return &Runner{mu: sync.Mutex{}, errChan: make(chan error, 1)}
 }
 
-// Run locks current goroutine then execute given function in new goroutine
+// RunWithRecovery locks current goroutine then execute given function in new goroutine
 // and when it returns error unlocks current goroutine and returns error
 func (s *Runner) Run(f func() error) error {
 	s.mu.Lock()
@@ -24,22 +24,27 @@ func (s *Runner) Run(f func() error) error {
 	return f()
 }
 
-// Run infinitely runs f on error calls callback on panic recovers and continues to run f
-func Run(ctx context.Context, f func(ctx context.Context) error, errCallback func(error)) {
+// RunWithRecovery runs f on error calls callback on panic recovers and continues to run f
+func RunWithRecovery(ctx context.Context, f func(ctx context.Context) error, recoverCallback func(error)) error {
+	err := make(chan error, 1)
 	recov := make(chan error, 1)
 	for {
 		GoardWithCallback(
 			ctx,
 			func(ctx context.Context) {
-				recov <- f(ctx)
+				err <- f(ctx)
 			},
 			func(err error) {
 				recov <- err
 			},
 		)
-		err := <-recov
-		if err != nil {
-			errCallback(err)
+		select {
+		case e := <-err:
+			return e
+		case err := <-recov:
+			if err != nil {
+				recoverCallback(err)
+			}
 		}
 	}
 }
