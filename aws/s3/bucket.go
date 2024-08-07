@@ -3,6 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"io"
 	"net/url"
 	"time"
@@ -167,6 +168,75 @@ func NewUniversalBucket(
 		client:     client,
 		uploader:   uploader,
 		downloader: downloader,
+	}, err
+}
+
+func NewBucketWithCredentials(
+	ctx context.Context,
+	keyID,
+	accessKey,
+	region,
+	s3url,
+	bucketName string,
+	fileDownloadTL time.Duration, fileUploadTL time.Duration,
+) (Bucket, error) {
+	if keyID == "" {
+		return nil, fmt.Errorf("error s3 keyID cant be empty")
+	}
+	if accessKey == "" {
+		return nil, fmt.Errorf("error s3 accessKey cant be empty")
+	}
+	if region == "" {
+		return nil, fmt.Errorf("error s3 region cant be empty")
+	}
+	if s3url == "" {
+		return nil, fmt.Errorf("error s3 url cant be empty")
+	} else if _, err := url.Parse(s3url); err != nil {
+		return nil, fmt.Errorf("error parse s3 url: %w", err)
+	}
+	if bucketName == "" {
+		return nil, fmt.Errorf("error s3 bucketName cant be empty")
+	}
+
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		if service == s3.ServiceID {
+			return aws.Endpoint{
+				URL:           s3url,
+				SigningRegion: region,
+			}, nil
+		}
+		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
+	})
+
+	cfg, err := awsConfig.LoadDefaultConfig(
+		ctx,
+		awsConfig.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(keyID, accessKey, ""),
+		),
+		awsConfig.WithEndpointResolverWithOptions(customResolver),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	client := s3.NewFromConfig(cfg)
+
+	//ping
+	_, err = client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	if err != nil {
+		return nil, fmt.Errorf("error while ListBuckets: %w", err)
+	}
+
+	return &bucket{
+		name:           bucketName,
+		fileDownloadTL: fileDownloadTL,
+		fileUploadTL:   fileUploadTL,
+
+		client: client,
+		uploader: manager.NewUploader(client, func(u *manager.Uploader) {
+			u.PartSize = 4 * 1024 * 1024
+		}),
+		downloader: manager.NewDownloader(client),
 	}, err
 }
 
