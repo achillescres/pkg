@@ -7,6 +7,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"os"
 	"testing"
 	"time"
 )
@@ -28,7 +29,14 @@ const (
 	DefaultImage    = "postgres:15-alpine"
 )
 
-func NewContainer(ctx context.Context, opts ...testcontainers.ContainerCustomizer) (*postgres.PostgresContainer, Info, error) {
+func NewContainer(ctx context.Context, useRyuk bool, opts ...testcontainers.ContainerCustomizer) (*postgres.PostgresContainer, Info, error) {
+	if useRyuk {
+		err := os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+		if err != nil {
+			return nil, Info{}, fmt.Errorf("set TESTCONTAINERS_RYUK_DISABLED to true: %w", err)
+		}
+	}
+
 	opts = append([]testcontainers.ContainerCustomizer{
 		postgres.WithUsername(DefaultUser),
 		postgres.WithPassword(DefaultPassword),
