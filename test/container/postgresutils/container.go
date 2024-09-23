@@ -30,7 +30,7 @@ const (
 )
 
 func NewContainer(ctx context.Context, useRyuk bool, opts ...testcontainers.ContainerCustomizer) (*postgres.PostgresContainer, Info, error) {
-	if useRyuk {
+	if !useRyuk {
 		err := os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 		if err != nil {
 			return nil, Info{}, fmt.Errorf("set TESTCONTAINERS_RYUK_DISABLED to true: %w", err)
