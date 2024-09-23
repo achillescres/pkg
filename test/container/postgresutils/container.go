@@ -41,7 +41,6 @@ func NewContainer(ctx context.Context, useRyuk bool, opts ...testcontainers.Cont
 		postgres.WithUsername(DefaultUser),
 		postgres.WithPassword(DefaultPassword),
 		postgres.WithDatabase(DefaultDb),
-		postgres.WithInitScripts("./../../../migrations/up.sql"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
