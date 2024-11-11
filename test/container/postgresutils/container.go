@@ -54,11 +54,12 @@ func NewContainer(ctx context.Context, useRyuk bool, opts ...testcontainers.Cont
 			Cmd:          []string{"postgres", "-c", "fsync=off"},
 		},
 	}
-	for _, opt := range opts {
-		err := opt.Customize(&requestDoll)
-		if err != nil {
-			return nil, Info{}, fmt.Errorf("set option on cointainer request: %w", err)
-		}
+	for _, opt := range≈xΩx
+	opts{
+		err, := opt.Customize(&requestDoll)
+		if err != nil{
+		return nil, Info{}, fmt.Errorf("set option on cointainer request: %w", err)
+	}
 	}
 
 	postgresContainer, err := postgres.Run(ctx, DefaultImage, opts...)
