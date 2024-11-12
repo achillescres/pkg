@@ -1,27 +1,19 @@
 package kafka
 
 import (
-	"context"
 	"github.com/segmentio/kafka-go"
 	"time"
 )
 
 type ReaderConfig struct {
-	Dialer  *kafka.Dialer
 	Brokers []string
-
+	Dialer  *kafka.Dialer
 	GroupID string
 	Topic   string
 	Timeout time.Duration
-
-	UseSASL            bool
-	Username, Password string
-
-	UseCA     bool
-	CaAbsPath string
 }
 
-func NewReader(ctx context.Context, rc ReaderConfig) (*kafka.Reader, error) {
+func NewReader(rc ReaderConfig) (*kafka.Reader, error) {
 	config := newReaderFromReaderConfig(rc)
 
 	r := kafka.NewReader(*config)
@@ -31,9 +23,11 @@ func NewReader(ctx context.Context, rc ReaderConfig) (*kafka.Reader, error) {
 
 func newReaderFromReaderConfig(rc ReaderConfig) *kafka.ReaderConfig {
 	conf := &kafka.ReaderConfig{
+		Dialer:  rc.Dialer,
 		Brokers: rc.Brokers,
 		GroupID: rc.GroupID,
 		Topic:   rc.Topic,
+		MaxWait: rc.Timeout,
 	}
 	return conf
 }
