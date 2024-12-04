@@ -11,17 +11,19 @@ import (
 )
 
 type ForwardProxy struct {
+	port      int
 	server    *goproxy.ProxyHttpServer
 	forwardTo url.URL
 }
 
-func New(forwardTo *url.URL) *ForwardProxy {
+func New(port int, forwardTo *url.URL) *ForwardProxy {
 	server := goproxy.NewProxyHttpServer()
 	//server.Verbose = true
 
 	fp := &ForwardProxy{
 		server:    server,
 		forwardTo: *forwardTo,
+		port:      port,
 	}
 	server.Tr.Proxy = func(*http.Request) (*url.URL, error) {
 		return &fp.forwardTo, nil
@@ -29,15 +31,20 @@ func New(forwardTo *url.URL) *ForwardProxy {
 
 	return fp
 }
+
+func (fp *ForwardProxy) Port() int {
+	return fp.port
+}
+
 func (fp *ForwardProxy) Forward(forwardTo *url.URL) {
 	fp.forwardTo = *forwardTo
 }
 
-func (fp *ForwardProxy) Run(ctx context.Context, port uint) error {
+func (fp *ForwardProxy) Run(ctx context.Context) error {
 	ew := utils.NewErrorWrapper("ForwardProxy - Run")
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", fp.port),
 		Handler: fp.server,
 		BaseContext: func(net.Listener) context.Context {
 			return ctx
