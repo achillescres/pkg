@@ -17,7 +17,7 @@ type ForwardProxy struct {
 
 func New(forwardTo *url.URL) *ForwardProxy {
 	server := goproxy.NewProxyHttpServer()
-	server.Verbose = true
+	//server.Verbose = true
 
 	fp := &ForwardProxy{
 		server:    server,
