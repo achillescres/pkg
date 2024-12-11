@@ -16,13 +16,13 @@ type ForwardProxy struct {
 	forwardTo url.URL
 }
 
-func New(port int, forwardTo *url.URL) *ForwardProxy {
+func New(port int, forwardTo url.URL) *ForwardProxy {
 	server := goproxy.NewProxyHttpServer()
 	//server.Verbose = true
 
 	fp := &ForwardProxy{
 		server:    server,
-		forwardTo: *forwardTo,
+		forwardTo: forwardTo,
 		port:      port,
 	}
 	server.Tr.Proxy = func(*http.Request) (*url.URL, error) {
@@ -36,10 +36,11 @@ func (fp *ForwardProxy) Port() int {
 	return fp.port
 }
 
-func (fp *ForwardProxy) Forward(forwardTo *url.URL) {
-	fp.forwardTo = *forwardTo
+func (fp *ForwardProxy) Forward(forwardTo url.URL) {
+	fp.forwardTo = forwardTo
 }
 
+// Run runs forward proxy server and block goroutine
 func (fp *ForwardProxy) Run(ctx context.Context) error {
 	ew := utils.NewErrorWrapper("ForwardProxy - Run")
 
@@ -51,10 +52,19 @@ func (fp *ForwardProxy) Run(ctx context.Context) error {
 		},
 	}
 
+	// close server explicitly with context close
 	go func() {
 		<-ctx.Done()
 		server.Close()
 	}()
 
 	return ew(server.ListenAndServe())
+}
+
+func (fp *ForwardProxy) RunSilently(ctx context.Context, runErr chan<- error) {
+	go func() {
+		if err := fp.Run(ctx); err != nil {
+			runErr <- err
+		}
+	}()
 }
