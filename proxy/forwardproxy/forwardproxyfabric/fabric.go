@@ -3,7 +3,6 @@ package forwardproxyfabric
 import (
 	"context"
 	"fmt"
-	"github.com/achillescres/pkg/utils"
 	"github.com/elazarl/goproxy"
 	"net"
 	"net/http"
@@ -28,12 +27,10 @@ func (s Server) Port() int {
 	return s.port
 }
 
-func New(ctx context.Context, serverErrCallback func(error), forward url.URL) (*Server, error) {
-	ew := utils.NewErrorWrapper("Fabric - Run")
-
+func New(ctx context.Context, serverErrCallback func(error), forward url.URL) *Server {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		return nil, ew(fmt.Errorf("listen: %w", err))
+		panic("listen tcp :0: " + err.Error())
 	}
 
 	sc := Server{
@@ -56,7 +53,7 @@ func New(ctx context.Context, serverErrCallback func(error), forward url.URL) (*
 		}
 	}()
 
-	return &sc, nil
+	return &sc
 }
 
 func NewWithPort(ctx context.Context, port int, forward url.URL, serverErrCallback func(error)) *Server {
