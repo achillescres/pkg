@@ -27,6 +27,14 @@ func (s Server) Port() int {
 	return s.port
 }
 
+func (s Server) Url() *url.URL {
+	u, err := url.Parse(fmt.Sprintf("localhost:%d", s.Port()))
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
 func New(ctx context.Context, serverErrCallback func(error), forward url.URL) *Server {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
