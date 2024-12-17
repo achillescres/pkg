@@ -28,7 +28,7 @@ func (s Server) Port() int {
 }
 
 func (s Server) Url() *url.URL {
-	u, err := url.Parse(fmt.Sprintf("localhost:%d", s.Port()))
+	u, err := url.Parse(fmt.Sprintf("http://localhost:%d", s.Port()))
 	if err != nil {
 		panic(err)
 	}
