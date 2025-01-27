@@ -12,8 +12,10 @@ import (
 	"time"
 )
 
+type ScramAlgorithm uint
+
 const ( // shit but reverse compatible shit
-	SHA256 uint8 = iota
+	SHA256 ScramAlgorithm = iota
 	SHA512
 )
 
@@ -24,14 +26,17 @@ type DialerConfig struct {
 	CaAbsPath               string
 	Timeout                 time.Duration
 	VerifyBrokerCertificate bool
-	// Default 0 is SHA256
-	ScramAlgorithm uint8
+	// Default nil causes panic on run
+	ScramAlgorithm *uint8
 }
 
 func (dc DialerConfig) validate() error {
 	ew := utils.NewErrorWrapper("DialerConfig - validate")
 
-	if dc.ScramAlgorithm > 1 {
+	if dc.ScramAlgorithm == nil {
+		return ew(fmt.Errorf("ScramAlgorithm is nil"))
+	}
+	if *dc.ScramAlgorithm > 1 {
 		return ew(fmt.Errorf("invalid ScramAlgorithm, valid range [0, 1]: %d", dc.ScramAlgorithm))
 	}
 
@@ -50,7 +55,7 @@ func NewDialer(config DialerConfig) (*kafka.Dialer, error) {
 
 	if config.UseSASL {
 		algo := scram.SHA256
-		if config.ScramAlgorithm == 1 {
+		if *config.ScramAlgorithm == 1 {
 			algo = scram.SHA512
 		}
 		mechanism, err := scram.Mechanism(algo, config.Username, config.Password)

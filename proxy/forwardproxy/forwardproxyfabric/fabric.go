@@ -15,6 +15,10 @@ type Server struct {
 	port    int
 }
 
+func (s Server) Reload() {
+
+}
+
 func (s Server) Close() error {
 	return s.close()
 }
