@@ -11,23 +11,21 @@ import (
 // It uses kafka.Writer from kafka-go
 // Specify your own MessageType with Message interface
 type PubTopic[MessageType Message] struct {
-	writer    *kafka.Writer
-	partition int
-	offset    int64
-	timeFunc  func() time.Time
+	writer   *kafka.Writer
+	offset   int64
+	timeFunc func() time.Time
 }
 
 func NewPubTopic[MessageType Message](
 	writer *kafka.Writer,
-	partition int,
 	offset int64,
 	timeFunc func() time.Time,
 ) *PubTopic[MessageType] {
-	return &PubTopic[MessageType]{writer: writer, partition: partition, offset: offset, timeFunc: timeFunc}
+	return &PubTopic[MessageType]{writer: writer, offset: offset, timeFunc: timeFunc}
 }
 
 func (p *PubTopic[MessageType]) Name() string {
-	return fmt.Sprintf("%s/%d, offset=%d", p.writer.Topic, p.partition, p.offset)
+	return fmt.Sprintf("%s(offset=%d)", p.writer.Topic, p.offset)
 }
 
 func (p *PubTopic[MessageType]) Pub(ctx context.Context, message MessageType) error {
@@ -37,14 +35,14 @@ func (p *PubTopic[MessageType]) Pub(ctx context.Context, message MessageType) er
 	}
 
 	err = p.writer.WriteMessages(ctx, kafka.Message{
-		Partition: p.partition,
-		Offset:    p.offset,
-		Key:       []byte(message.Key()),
-		Value:     rawMes,
-		Time:      p.timeFunc(),
+		Offset: p.offset,
+		Key:    []byte(message.Key()),
+		Value:  rawMes,
+		Time:   p.timeFunc(),
 	})
 	if err != nil {
 		return fmt.Errorf("write message to partition: %w", err)
 	}
+
 	return nil
 }
