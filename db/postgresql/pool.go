@@ -52,11 +52,8 @@ func NewPGXPool(ctx context.Context, cc *ClientConfig, logger *logrus.Entry) (PG
 	}
 
 	pingCtx, cancel := context.WithTimeout(ctx, cc.WaitingDuration)
-	defer func() {
-		if cancel != nil {
-			cancel()
-		}
-	}()
+	defer cancel()
+
 	err = pool.Ping(pingCtx)
 	if err != nil {
 		return PGXPool{}, err
