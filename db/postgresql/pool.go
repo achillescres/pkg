@@ -35,7 +35,7 @@ func NewPGXPool(ctx context.Context, cc *ClientConfig, logger *logrus.Entry) (PG
 		}
 	}
 
-	logger.Infof("trying to connect to db: %s\n", config.ConnString())
+	logger.Infof("trying to connect to db")
 	createCtx, cancel := context.WithTimeout(ctx, cc.WaitingDuration)
 	defer func() {
 		if cancel != nil {
