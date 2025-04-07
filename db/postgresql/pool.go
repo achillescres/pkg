@@ -5,9 +5,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"os"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 type PGXPool struct {
@@ -37,11 +38,7 @@ func NewPGXPool(ctx context.Context, cc *ClientConfig, logger *logrus.Entry) (PG
 
 	logger.Infof("trying to connect to db")
 	createCtx, cancel := context.WithTimeout(ctx, cc.WaitingDuration)
-	defer func() {
-		if cancel != nil {
-			cancel()
-		}
-	}()
+	defer cancel()
 
 	pool, err := pgxpool.NewWithConfig(createCtx, config)
 	if err != nil {

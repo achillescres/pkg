@@ -3,8 +3,9 @@ package iamStorage
 import (
 	"context"
 	"errors"
-	"github.com/achillescres/pkg/myyc"
 	"time"
+
+	"github.com/achillescres/pkg/myyc"
 )
 
 const (
@@ -29,11 +30,7 @@ func New(pull PullIAM) *IAMStorage {
 
 func (s *IAMStorage) updateToken(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, tokenUpdateTimeout)
-	defer func() {
-		if cancel != nil {
-			cancel()
-		}
-	}()
+	defer cancel()
 
 	iam, err := s.pull(ctx)
 	if err != nil {

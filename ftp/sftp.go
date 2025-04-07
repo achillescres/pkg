@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	sftplib "github.com/pkg/sftp"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"time"
+
+	sftplib "github.com/pkg/sftp"
+	"golang.org/x/crypto/ssh"
 )
 
 type SFTPConfig struct {
@@ -15,19 +16,19 @@ type SFTPConfig struct {
 	cc   ssh.ClientConfig
 }
 
-type sftp struct {
+type SFTP struct {
 	cfg    SFTPConfig
 	client *sftplib.Client
 }
 
-func NewSFTP(cfg SFTPConfig) (SFTP, error) {
+func NewSFTP(cfg SFTPConfig) (*SFTP, error) {
 	if cfg.cc.Timeout < time.Millisecond*256 {
 		return nil, errors.New("dial is too small(min is 256 ms)")
 	}
-	return &sftp{cfg: cfg}, nil
+	return &SFTP{cfg: cfg}, nil
 }
 
-func (c *sftp) Connect(_ context.Context) error {
+func (c *SFTP) Connect(_ context.Context) error {
 	c.close()
 
 	c.client = nil
@@ -45,7 +46,7 @@ func (c *sftp) Connect(_ context.Context) error {
 	return nil
 }
 
-func (c *sftp) UploadFile(ctx context.Context, filepath string, f io.Reader) error {
+func (c *SFTP) UploadFile(ctx context.Context, filepath string, f io.Reader) error {
 	err := c.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("connecting to sftp: %w", err)
@@ -63,16 +64,15 @@ func (c *sftp) UploadFile(ctx context.Context, filepath string, f io.Reader) err
 	return nil
 }
 
-func (c *sftp) close() {
+func (c *SFTP) close() {
 	if c.client == nil {
 		return
 	}
 	c.client.Close()
 	c.client = nil
-	return
 }
 
-func (c *sftp) Rename(ctx context.Context, from, to string) error {
+func (c *SFTP) Rename(ctx context.Context, from, to string) error {
 	err := c.Connect(ctx)
 	if err != nil {
 		return err
@@ -80,4 +80,23 @@ func (c *sftp) Rename(ctx context.Context, from, to string) error {
 	defer c.close()
 
 	return c.client.Rename(from, to)
+}
+
+func (c *SFTP) DownloadFile(ctx context.Context, filepath string, f io.Writer) error {
+	err := c.Connect(ctx)
+	if err != nil {
+		return fmt.Errorf("connecting to sftp: %w", err)
+	}
+	defer c.close()
+
+	file, err := c.client.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("couldn't open file: %w", err)
+	}
+	_, err = io.Copy(f, file)
+	if err != nil {
+		return fmt.Errorf("couldn't copy file: %w", err)
+	}
+
+	return nil
 }

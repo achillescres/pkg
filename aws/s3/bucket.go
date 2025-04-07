@@ -3,10 +3,11 @@ package s3
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"io"
 	"net/url"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/credentials"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
@@ -256,11 +257,7 @@ func (b *bucket) UploadLargeFile(ctx context.Context, key string, file io.Reader
 	}
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*b.fileUploadTL)
-	defer func() {
-		if cancel != nil {
-			cancel()
-		}
-	}()
+	defer cancel()
 	_, err = b.uploader.Upload(ctxTimeout, &s3.PutObjectInput{
 		Bucket: aws.String(b.name),
 		Key:    aws.String(key),
@@ -318,11 +315,7 @@ func (b *bucket) DownloadFileByKey(ctx context.Context, key string) (*DownloadFi
 	wr := manager.NewWriteAtBuffer(buf)
 	log.Debugf("Downloading file %s\n", key)
 	ctxDw, cancel := context.WithTimeout(ctx, b.fileDownloadTL)
-	defer func() {
-		if cancel != nil {
-			cancel()
-		}
-	}()
+	defer cancel()
 	numBytes, err := b.downloader.Download(
 		ctxDw,
 		wr,
