@@ -35,7 +35,10 @@ func NewFTP(cfg FTPConfig) (*FTP, error) {
 }
 
 func (c *FTP) Connect(ctx context.Context) error {
-	c.close()
+	err := c.close()
+	if err != nil {
+		return fmt.Errorf("close conn: %w", err)
+	}
 
 	c.conn = nil
 	tctx, cancel := context.WithTimeout(ctx, c.cfg.DialTimeout)
@@ -58,14 +61,14 @@ func (c *FTP) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (c *FTP) List(ctx context.Context) ([]Entry, error) {
+func (c *FTP) List(ctx context.Context, path string) ([]Entry, error) {
 	defer c.close()
 	err := c.Connect(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("connect to ftp server: %w", err)
 	}
 
-	entries, err := c.conn.List("./")
+	entries, err := c.conn.List(path)
 	if err != nil {
 		return nil, fmt.Errorf("list directory: %w", err)
 	}
@@ -91,15 +94,16 @@ func (c *FTP) UploadFile(ctx context.Context, filepath string, f io.Reader) erro
 	return nil
 }
 
-func (c *FTP) close() {
+func (c *FTP) close() error {
 	if c.conn == nil {
-		return
+		return nil
 	}
 	if err := c.conn.Quit(); err != nil {
 		c.conn = nil
-		//return fmt.Errorf("close connection to ftp server: %w", err)
+		return fmt.Errorf("close connection to ftp server: %w", err)
 	}
 	c.conn = nil
+	return nil
 }
 
 func (c *FTP) Rename(ctx context.Context, from, to string) error {

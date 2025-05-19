@@ -10,6 +10,7 @@ type Client interface {
 	Rename(ctx context.Context, from, to string) error
 	Uploader
 	Downloader
+	Lister
 }
 
 type Uploader interface {
@@ -18,4 +19,10 @@ type Uploader interface {
 
 type Downloader interface {
 	DownloadFile(ctx context.Context, filepath string, f io.Writer) error
+}
+
+const RelativePath = "./"
+
+type Lister interface {
+	List(ctx context.Context, path string) ([]Entry, error)
 }
