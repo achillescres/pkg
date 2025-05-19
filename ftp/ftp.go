@@ -18,10 +18,6 @@ type FTPConfig struct {
 	DialTimeout time.Duration
 }
 
-type Entry struct {
-	goftp.Entry
-}
-
 type FTP struct {
 	cfg  FTPConfig
 	conn *goftp.ServerConn
@@ -75,7 +71,12 @@ func (c *FTP) List(ctx context.Context, path string) ([]Entry, error) {
 
 	var ownEntries []Entry
 	for _, entry := range entries {
-		ownEntries = append(ownEntries, Entry{*entry})
+		ownEntries = append(ownEntries, Entry{
+			Name:  entry.Name,
+			IsDir: entry.Type == goftp.EntryTypeFolder,
+			Size:  entry.Size,
+			Time:  entry.Time,
+		})
 	}
 	return ownEntries, nil
 }

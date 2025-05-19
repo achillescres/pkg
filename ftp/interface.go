@@ -3,6 +3,7 @@ package ftp
 import (
 	"context"
 	"io"
+	"time"
 )
 
 type Client interface {
@@ -22,6 +23,13 @@ type Downloader interface {
 }
 
 const RelativePath = "./"
+
+type Entry struct {
+	Name  string
+	IsDir bool
+	Size  uint64
+	Time  time.Time
+}
 
 type Lister interface {
 	List(ctx context.Context, path string) ([]Entry, error)
