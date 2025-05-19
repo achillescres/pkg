@@ -18,6 +18,10 @@ type FTPConfig struct {
 	DialTimeout time.Duration
 }
 
+type Entry struct {
+	goftp.Entry
+}
+
 type FTP struct {
 	cfg  FTPConfig
 	conn *goftp.ServerConn
@@ -52,6 +56,25 @@ func (c *FTP) Connect(ctx context.Context) error {
 
 	c.conn = conn
 	return nil
+}
+
+func (c *FTP) List(ctx context.Context) ([]Entry, error) {
+	defer c.close()
+	err := c.Connect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("connect to ftp server: %w", err)
+	}
+
+	entries, err := c.conn.List("./")
+	if err != nil {
+		return nil, fmt.Errorf("list directory: %w", err)
+	}
+
+	var ownEntries []Entry
+	for _, entry := range entries {
+		ownEntries = append(ownEntries, Entry{*entry})
+	}
+	return ownEntries, nil
 }
 
 func (c *FTP) UploadFile(ctx context.Context, filepath string, f io.Reader) error {

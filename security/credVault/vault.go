@@ -3,13 +3,18 @@ package credVault
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 )
+
+// PullCred func pulls new cred and returns it and its expiration time
+type PullCred[Cred any] func(ctx context.Context) (Cred, *time.Time, error)
 
 // CredVault stores and updates credentials
 // Uses PullCred function to pull new credentials
 // Automatically updates credentials if expired or will in expirationTimeMinimumBound
 type CredVault[Cred any] struct {
+	mu                         *sync.RWMutex
 	pull                       PullCred[Cred]
 	expirationTimeMinimumBound time.Duration
 
@@ -30,18 +35,22 @@ func New[Cred any](ctx context.Context, pullFn PullCred[Cred], expirationTimeMin
 
 		cred:     cred,
 		expireAt: expireAt,
+
+		mu: &sync.RWMutex{},
 	}, err
 }
 
 // maintain checks cred relevancy and updates it if cred is outdated
 func (cv CredVault[Cred]) maintain(ctx context.Context) error {
+	cv.mu.Lock()
+	defer cv.mu.Unlock()
+
 	if cv.expireAt == nil {
 		return nil
 	}
 	if cv.expireAt.Sub(time.Now()) > cv.expirationTimeMinimumBound {
 		return nil
 	}
-
 	cred, expireAt, err := cv.pull(ctx)
 	if err != nil {
 		return err
@@ -67,6 +76,8 @@ func (cv CredVault[Cred]) Cred(ctx context.Context) (Cred, error) {
 		return *new(Cred), err
 	}
 
+	cv.mu.RLock()
+	defer cv.mu.RUnlock()
 	return cv.cred, nil
 }
 
@@ -76,5 +87,7 @@ func (cv CredVault[Cred]) ExpireAt(ctx context.Context) (*time.Time, error) {
 		return nil, err
 	}
 
+	cv.mu.RLock()
+	defer cv.mu.RUnlock()
 	return cv.expireAt, nil
 }
