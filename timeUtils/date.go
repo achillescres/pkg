@@ -1,42 +1,56 @@
 package timeUtils
 
 import (
+	"database/sql/driver"
 	"time"
 )
 
-const timeFormat = "2006-01-02"
+const DateFormat = "2006-01-02"
 
-type Date time.Time
-
-func NewDate(year int, month time.Month, day int) Date {
-	return Date(time.Date(year, month, day, 0, 0, 0, 0, time.Local))
+type Date struct {
+	time.Time
 }
 
-func NewDateFromTime(t time.Time) Date {
-	return Date(CleanTime(t))
+func (t *Date) UnmarshalJSON(data []byte) error {
+	if len(data) == 2 {
+		*t = Date{Time: time.Time{}}
+		return nil
+	}
+
+	now, err := time.Parse(`"`+DateFormat+`"`, string(data))
+	if err != nil {
+		return err
+	}
+
+	*t = Date{Time: now}
+	return nil
 }
 
-func (d Date) T() time.Time {
-	return time.Time(d)
-}
-
-func (d Date) String() string {
-	return time.Time(d).Format(timeFormat)
-}
-
-func (d Date) MarshalJSON() ([]byte, error) {
-	b := make([]byte, 0, len(timeFormat)+2)
+func (t Date) MarshalJSON() ([]byte, error) {
+	b := make([]byte, 0, len(DateFormat)+2)
 	b = append(b, '"')
-	b = time.Time(d).AppendFormat(b, timeFormat)
+	b = t.AppendFormat(b, DateFormat)
 	b = append(b, '"')
 	return b, nil
 }
 
-func (d *Date) UnmarshalJSON(b []byte) error {
-	date, err := time.Parse(`"`+timeFormat+`"`, string(b))
+func (t Date) Value() (driver.Value, error) {
+	if t.String() == "0001-01-01" {
+		return nil, nil
+	}
+	return []byte(t.Format(DateFormat)), nil
+}
+
+func (t *Date) Scan(v interface{}) error {
+	tTime, err := time.Parse(DateFormat, v.(time.Time).String())
 	if err != nil {
 		return err
 	}
-	*d = Date(date)
+
+	*t = Date{Time: tTime}
 	return nil
+}
+
+func (t Date) String() string {
+	return t.Format(DateFormat)
 }
