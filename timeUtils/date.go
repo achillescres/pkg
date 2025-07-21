@@ -16,6 +16,10 @@ func NewDateFromTime(t time.Time) Date {
 	return Date(CleanTime(t))
 }
 
+func (d Date) T() time.Time {
+	return time.Time(d)
+}
+
 func (d Date) String() string {
 	return time.Time(d).Format(timeFormat)
 }
