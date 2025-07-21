@@ -7,13 +7,11 @@ import (
 
 const DateFormat = "2006-01-02"
 
-type Date struct {
-	time.Time
-}
+type Date time.Time
 
 func (t *Date) UnmarshalJSON(data []byte) error {
 	if len(data) == 2 {
-		*t = Date{Time: time.Time{}}
+		*t = Date(time.Time{})
 		return nil
 	}
 
@@ -22,14 +20,14 @@ func (t *Date) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*t = Date{Time: now}
+	*t = Date(now)
 	return nil
 }
 
 func (t Date) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(DateFormat)+2)
 	b = append(b, '"')
-	b = t.AppendFormat(b, DateFormat)
+	b = time.Time(t).AppendFormat(b, DateFormat)
 	b = append(b, '"')
 	return b, nil
 }
@@ -38,7 +36,7 @@ func (t Date) Value() (driver.Value, error) {
 	if t.String() == "0001-01-01" {
 		return nil, nil
 	}
-	return []byte(t.Format(DateFormat)), nil
+	return []byte(time.Time(t).Format(DateFormat)), nil
 }
 
 func (t *Date) Scan(v interface{}) error {
@@ -47,10 +45,14 @@ func (t *Date) Scan(v interface{}) error {
 		return err
 	}
 
-	*t = Date{Time: tTime}
+	*t = Date(tTime)
 	return nil
 }
 
 func (t Date) String() string {
-	return t.Format(DateFormat)
+	return time.Time(t).Format(DateFormat)
+}
+
+func (t Date) Time() time.Time {
+	return time.Time(t)
 }
