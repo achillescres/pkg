@@ -32,10 +32,10 @@ func Set[T comparable](slice []T) map[T]struct{} {
 	return set
 }
 
-func SetFuncStringKey[T any](slice []T, key func(T) string) map[string]struct{} {
-	set := make(map[string]struct{})
+func SetFuncStringKey[T any](slice []T, key func(T) string) map[string]T {
+	set := make(map[string]T)
 	for _, entry := range slice {
-		set[key(entry)] = struct{}{}
+		set[key(entry)] = entry
 	}
 	return set
 }
