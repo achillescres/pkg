@@ -11,3 +11,15 @@ func Unique[T comparable](slice []T) []T {
 	}
 	return list
 }
+
+func UniqueStringKey[T any](slice []T, key func(T) string) []T {
+	keys := make(map[string]struct{})
+	var list []T
+	for _, entry := range slice {
+		if _, ok := keys[key(entry)]; !ok {
+			keys[key(entry)] = struct{}{}
+			list = append(list, entry)
+		}
+	}
+	return list
+}

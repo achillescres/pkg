@@ -22,6 +22,9 @@ func Crontab(crontab string, tzAllowed bool) bool {
 		if strings.HasPrefix(crontab, "TZ=") || strings.HasPrefix(crontab, "CRON_TZ=") {
 			crontab = strings.TrimPrefix(strings.TrimPrefix(crontab, "TZ="), "CRON_TZ=")
 			two := strings.SplitN(crontab, " ", 2)
+			if len(two) != 2 {
+				return false
+			}
 			_, err := time.LoadLocation(two[0])
 			if err != nil {
 				return false
