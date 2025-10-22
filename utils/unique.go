@@ -12,7 +12,7 @@ func Unique[T comparable](slice []T) []T {
 	return list
 }
 
-func UniqueStringKey[T any](slice []T, key func(T) string) []T {
+func UniqueFuncStringKey[T any](slice []T, key func(T) string) []T {
 	keys := make(map[string]struct{})
 	var list []T
 	for _, entry := range slice {
@@ -22,4 +22,20 @@ func UniqueStringKey[T any](slice []T, key func(T) string) []T {
 		}
 	}
 	return list
+}
+
+func Set[T comparable](slice []T) map[T]struct{} {
+	set := make(map[T]struct{})
+	for _, entry := range slice {
+		set[entry] = struct{}{}
+	}
+	return set
+}
+
+func SetFuncStringKey[T any](slice []T, key func(T) string) map[string]struct{} {
+	set := make(map[string]struct{})
+	for _, entry := range slice {
+		set[key(entry)] = struct{}{}
+	}
+	return set
 }
